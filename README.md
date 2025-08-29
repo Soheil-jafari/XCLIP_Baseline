@@ -1,5 +1,4 @@
-# XCLIP_Baseline
-X-CLIP Baseline Experiments 
+X-CLIP Baseline Experiments for Paper
 This folder contains a complete, robust, and efficient implementation for running X-CLIP baseline experiments as required for your paper. The code is structured to be easy to run and directly uses the paths from your server configuration.
 
 1. Setup
@@ -12,7 +11,7 @@ cd xclip_paper_baselines
 conda create -n xclip python=3.9 -y
 conda activate xclip
 
-# Install PyTorch with CUDA support (adjust version if needed)
+# Install PyTorch with CUDA support (adjust version if needed for your server)
 pip install torch torchvision --extra-index-url [https://download.pytorch.org/whl/cu118](https://download.pytorch.org/whl/cu118)
 
 # Install the rest of the dependencies
