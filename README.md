@@ -1,9 +1,45 @@
-X-CLIP Baseline Experiments for Paper
-This folder contains a complete, robust, and efficient implementation for running X-CLIP baseline experiments as required for your paper. The code is structured to be easy to run and directly uses the paths from your server configuration.
+# X-CLIP Baseline Experiments: Temporal Localization in Surgery
 
-1. Setup
-First, create a dedicated conda environment and install the required packages.
+[cite_start]This repository provides a robust implementation of **X-CLIP** as a benchmark for language-guided temporal action localization (TAL) on endoscopic video[cite: 72, 748]. [cite_start]By utilizing multi-grained temporal contrastive learning, this baseline evaluates the transferability of general-purpose video-language models to the specialized surgical domain[cite: 747, 782].
 
+## 🏗️ Architecture & Differentiation
+
+[cite_start]Unlike standard image-based models (like vanilla CLIP), **X-CLIP** is designed specifically for video-text alignment[cite: 782]. [cite_start]It was chosen as a critical baseline because it moves beyond processing independent frames by introducing temporal awareness[cite: 747].
+
+**Key Model Components:**
+* [cite_start]**Multi-Grained Temporal Contrastive Learning**: Captures both frame-level details and high-level temporal dynamics across video segments[cite: 782].
+* [cite_start]**Video-Specific Encoder**: Uses a message-passing mechanism between frame tokens to exchange temporal information before global pooling[cite: 782].
+* [cite_start]**Cross-Modal Fusion**: Aligns visual representations of 16-frame clips with clinical descriptions in a shared embedding space[cite: 784].
+
+
+
+## 💻 Hardware & Resource Management
+
+[cite_start]To handle the high-resolution, long-form nature of the **Cholec80 dataset**, training was optimized for high-performance research infrastructure[cite: 343, 593].
+
+* [cite_start]**GPU Infrastructure**: Executed on **NVIDIA RTX A6000 GPUs** with **48GB of VRAM**[cite: 592].
+* [cite_start]**VRAM Optimization**: Utilized **Mixed-Precision (FP16)** via PyTorch’s `autocast` to reduce the memory footprint and accelerate training throughput[cite: 598].
+* [cite_start]**Compute Strategy**: Implemented **Gradient Accumulation** to simulate stable batch sizes (effective size of 192) within hardware limits[cite: 665, 692].
+* [cite_start]**Session Persistence**: Managed long-running jobs (up to 17 hours per epoch) using **tmux** to ensure stability against network disconnections[cite: 598, 805].
+
+## 📊 Baseline Comparison Results
+
+[cite_start]While X-CLIP is a state-of-the-art general video model, results highlight a significant **domain gap** when applied to surgical endoscopy[cite: 872, 907].
+
+| Metric | X-CLIP Baseline | **Proposed Framework (MSc Thesis)** |
+| :--- | :--- | :--- |
+| **AUROC** (Test) | [cite_start]0.50 [cite: 795, 967] | [cite_start]**0.93** [cite: 837, 911] |
+| **AUPRC** (Test) | [cite_start]0.07 [cite: 795, 967] | [cite_start]**0.89** [cite: 837, 911] |
+| **mAP@0.5** | [cite_start]0.00 [cite: 797, 967] | [cite_start]**0.29\*** [cite: 864, 990] |
+
+[cite_start]**Technical Analysis**: X-CLIP showed "okayish" trends on validation ($AUROC \approx 0.72$) but collapsed on the test set ($AUROC \approx 0.50$) due to visual domain shift[cite: 964, 968]. [cite_start]This proves that standard video-language models struggle to generalize to the subtle, continuous procedural nature of surgery without domain-specific tailoring[cite: 872, 923].
+
+## 🚀 Setup & Usage
+
+### 1. Environment Configuration
+[cite_start]Create a dedicated conda environment to manage dependencies[cite: 596]:
+
+```bash
 # Navigate to this directory
 cd xclip_paper_baselines
 
@@ -11,31 +47,36 @@ cd xclip_paper_baselines
 conda create -n xclip python=3.9 -y
 conda activate xclip
 
-# Install PyTorch with CUDA support (adjust version if needed for your server)
+# Install PyTorch with CUDA support (for university ML server)
 pip install torch torchvision --extra-index-url [https://download.pytorch.org/whl/cu118](https://download.pytorch.org/whl/cu118)
-
-# Install the rest of the dependencies
 pip install -r requirements.txt
+2. Running Experiments
+The scripts generate timestamped outputs and save checkpoints in the configured server directories.
 
-2. Running the Experiments
-There are three main scripts, one for each experiment. They will create timestamped output folders inside /home/240331715/data/project_folder/Language-Guided-Endoscopy-Localization/outputs/xclip_baselines and save checkpoints in a similar checkpoints directory.
 
-Experiment 1: Zero-Shot Evaluation
-This runs the pre-trained X-CLIP model on your test set without any training.
+Experiment 1: Zero-Shot Evaluation Runs the pre-trained X-CLIP model on the test set without training.
 
+Bash
 python run_zeroshot.py
 
-Experiment 2: Linear-Probe (Few-Shot)
-This freezes the X-CLIP backbone and trains a small linear head. It will first train the head and then automatically run a full evaluation on the test set.
+Experiment 2: Linear-Probe (Few-Shot) Freezes the X-CLIP backbone and trains a task-specific linear head.
 
-# You can adjust hyperparameters like epochs, batch size, and learning rate
+Bash
 python run_linear_probe.py --epochs 15 --lr 1e-3
 
-Experiment 3: Full Fine-Tuning
-This fine-tunes the entire model using a contrastive loss on your training data. This is the most computationally intensive experiment. It will train the model and then evaluate it on the test set.
+Experiment 3: Full Fine-Tuning Fine-tunes the entire model using contrastive loss on Cholec80 training data.
 
-# Adjust hyperparameters as needed for your experiments
+Bash
 python run_finetune.py --epochs 5 --batch-size 16 --lr 1e-5
+📂 Repository Structure
+train_xclip.py: Main training entry point.
 
-Outputs
-For each run, a metrics.json and a human-readable metrics.txt file will be generated in the corresponding output directory. These files contain the Macro AUROC and AP scores you need for your paper's comparison tables.
+
+eval_xclip.py: Validation and test metric script.
+
+infer_xclip.py: Real-world inference for query testing.
+
+xclip_package/: Core X-CLIP library files.
+
+
+project_config.py: Global settings and hyperparameter management.
